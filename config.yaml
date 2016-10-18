@@ -1,0 +1,32 @@
+timefs :
+- mountpoint: '/'
+  log: 
+    dir: '/.dev/log/'
+    regex: 'test*.log'
+  time: 10800
+  truncate: no
+- mountpoint: '/'
+  log: 
+    dir: '/.dev/log/'
+    regex: 'process*.log'
+  time: 26280
+  truncate: no
+- mountpoint: '/'
+  log: 
+    dir: '/.dev/log/'
+    regex: 'somelog*.log'
+  time: 10
+  truncate: yes
+thresholdfs:
+- mountpoint: '/'
+  log: 
+    dir: '/.dev/log/'
+    regex: 'another*.log'
+  threshold: 10
+  truncate: yes
+- mountpoint: '/'
+  log: 
+    dir: '/.dev/log/'
+    regex: 'process*.log'
+  threshold: 10
+  truncate: no
