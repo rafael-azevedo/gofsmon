@@ -37,6 +37,7 @@ There are two objecst that can be created. Each object can take similar paramete
     * regex - This is the regex we are checking in the above directory
 * time - Time in seconds. Can only be used with timefs object. This says clean all files in the directory that exceeds x seconds
 * threshold - % that filesystem must exceed in order to trigger cleaning. This says clean all files in the directory if the directory is x% full or more
+* script - Script to be executed if trigger conitions are met
 
 for example `config.yaml` with following content:
 ```yaml
@@ -73,6 +74,7 @@ for example `config.yaml` with following content:
         regex: 'process*.log'
     threshold: 50
     truncate: no 
+    script: '/.dev/scripts/clean.sh'
 ```
 
 ### Setting Enviroment

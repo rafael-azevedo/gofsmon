@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"time"
@@ -61,45 +62,56 @@ type TimeFileSystem struct {
 	Log        LogRegex `yaml:"log"`
 	Time       int      `yaml:"time"`
 	Truncate   bool     `yaml:"truncate"`
+	Script     string   `yaml:"script"`
 }
 
 //CleanDir Cleans any matching files that are older then x seconds
 func (fs TimeFileSystem) CleanDir() error {
-	log.Println("Cleaning by time")
-	log.Printf("%+v\n", fs)
+	log.Println("Cleaning by Time")
 
-	for i := range fs.Log.Finfo {
-		fileName := fs.Log.Dir + fs.Log.Finfo[i].Name()
-		fileModTime := fs.Log.Finfo[i].ModTime()
-		timeSinceModTime := time.Since(fileModTime)
-		timeToDelete := time.Duration(fs.Time) * time.Second
+	if fs.Script != "" {
+		ExeScript(fs.Script)
+	} else {
+		for i := range fs.Log.Finfo {
+			fileName := fs.Log.Dir + fs.Log.Finfo[i].Name()
+			fileModTime := fs.Log.Finfo[i].ModTime()
+			timeSinceModTime := time.Since(fileModTime)
+			log.Println(timeSinceModTime)
+			timeToDelete := time.Duration(fs.Time) * time.Second
+			log.Println(timeToDelete)
 
-		switch {
-		case timeSinceModTime > timeToDelete:
 			switch {
-			case i == 0:
-				if fs.Truncate == true {
-					log.Println("Truncating", fileName, timeSinceModTime, timeToDelete)
-					err := os.Truncate(fileName, 0)
-					if err != nil {
-						return err
+			case timeSinceModTime > timeToDelete:
+				if fs.Script != "" {
+					cmd := fs.Script
+					log.Println(cmd)
+					os.Exit(0)
+				}
+				switch {
+				case i == 0:
+					if fs.Truncate {
+						log.Println("Truncating", fileName, timeSinceModTime, timeToDelete)
+						err := os.Truncate(fileName, 0)
+						if err != nil {
+							return err
+						}
+					} else {
+						log.Println("deleting", fileName, timeSinceModTime, timeToDelete)
+						err := os.Remove(fileName)
+						if err != nil {
+							return err
+						}
 					}
-				} else {
+				case i > 0:
 					log.Println("deleting", fileName, timeSinceModTime, timeToDelete)
 					err := os.Remove(fileName)
 					if err != nil {
 						return err
 					}
 				}
-			case i > 0:
-				log.Println("deleting", fileName, timeSinceModTime, timeToDelete)
-				err := os.Remove(fileName)
-				if err != nil {
-					return err
-				}
 			}
-		}
 
+		}
 	}
 	return nil
 }
@@ -110,34 +122,42 @@ type ThresholdFileSystem struct {
 	Log        LogRegex `yaml:"log"`
 	Threshold  float64  `yaml:"threshold"`
 	Truncate   bool     `yaml:"truncate"`
+	Script     string   `yaml:"scripts"`
 }
 
 //CleanDir Threshold FileSystem Cleans matching files from filesystem when static threshold is exceeded
 func (fs ThresholdFileSystem) CleanDir() error {
 	log.Println("Cleaning by threshold")
-	log.Printf("%+v\n", fs)
+	if fs.Script != "" {
+		ExeScript(fs.Script)
+	}
 
-	for i := range fs.Log.Finfo {
-		switch {
-		case i == 0:
-			if fs.Truncate == true {
+	if fs.Script != "" {
+		cmd := fs.Script
+		log.Println(cmd)
+	} else {
+
+		for i := range fs.Log.Finfo {
+			switch {
+			case i == 0:
+				if fs.Truncate {
+					fileName := fs.Log.Dir + fs.Log.Finfo[i].Name()
+					log.Println("Truncating", fileName)
+					err := os.Truncate(fileName, 0)
+					if err != nil {
+						return err
+					}
+				}
+			case i > 0:
 				fileName := fs.Log.Dir + fs.Log.Finfo[i].Name()
-				log.Println("Truncating", fileName)
-				err := os.Truncate(fileName, 0)
+				log.Println("deleting", fileName)
+				err := os.Remove(fileName)
 				if err != nil {
 					return err
 				}
 			}
-		case i > 0:
-			fileName := fs.Log.Dir + fs.Log.Finfo[i].Name()
-			log.Println("deleting", fileName)
-			err := os.Remove(fileName)
-			if err != nil {
-				return err
-			}
 		}
 	}
-
 	return nil
 }
 
@@ -199,9 +219,24 @@ func (l *LogRegex) setLogInfo() {
 	}
 }
 
-//functions required to implement sort by time on os.Fileinfo
+//byNewests functions required to implement sort by time on os.Fileinfo
 type byNewest []os.FileInfo
 
 func (a byNewest) Len() int           { return len(a) }
 func (a byNewest) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byNewest) Less(i, j int) bool { return a[i].ModTime().After(a[j].ModTime()) }
+
+//ExeScript executes the built in scripts
+func ExeScript(script string) {
+	cmd := script
+
+	log.Println("CMD : ", cmd)
+
+	output, err := exec.Command(cmd).Output()
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println("output: ", string(output))
+
+}

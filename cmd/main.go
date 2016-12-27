@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Staples-Inc/gofsmon"
+	"github.com/rafael-azevedo/gofsmon"
 )
 
 var config string

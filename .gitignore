@@ -1,1 +1,3 @@
 bin/
+scripts/test.sh
+test.yaml

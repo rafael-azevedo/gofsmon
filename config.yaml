@@ -5,6 +5,7 @@ timefs :
     regex: 'test*.log'
   time: 10800
   truncate: no
+  script: test
 - mountpoint: '/'
   log: 
     dir: '/.dev/log/'
