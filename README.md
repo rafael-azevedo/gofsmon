@@ -90,7 +90,7 @@ or set **GOFSMONCONF** in your path
 The build script can be found at ~/.go/src/github.com/rafael-azevedo/gofsmon/scripts/build_gofsmon.sh
 
 ```
-$ cd github.com/Staples-Inc/gofsmon/scripts 
+$ cd github.com/rafael-azevedo/gofsmon/scripts 
 $ ./build_gofsmon.sh
 2016-10-18 16:03:14 UTC [info] project path: ~/.go/src/github.com/rafael-azevedo/gofsmon
 2016-10-18 16:03:14 UTC [info] Building gofsmon to ~/.go/src/github.com/rafael-azevedo/gofsmon/bin/
